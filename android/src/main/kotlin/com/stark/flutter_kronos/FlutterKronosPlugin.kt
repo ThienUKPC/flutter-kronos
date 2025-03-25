@@ -9,7 +9,6 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
-import io.flutter.plugin.common.PluginRegistry.Registrar
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -29,31 +28,30 @@ class FlutterKronosPlugin : MethodCallHandler, FlutterPlugin, ActivityAware {
                 kronosClock?.syncInBackground()
             }
             "GET_CURRENT_TIME_MS" -> {
-                result.success(kronosClock?.getCurrentTimeMs());
+                result.success(kronosClock?.getCurrentTimeMs())
             }
             "GET_CURRENT_NTP_TIME_MS" -> {
-                result.success(kronosClock?.getCurrentNtpTimeMs());
+                result.success(kronosClock?.getCurrentNtpTimeMs())
             }
             else -> {
                 result.notImplemented()
             }
         }
-        return Unit
     }
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-        // no op
-        val messenger = binding.getBinaryMessenger()
+        val messenger = binding.binaryMessenger
         channel = MethodChannel(messenger, "flutter_kronos")
         channel?.setMethodCallHandler(this)
     }
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-        // no op
+        channel?.setMethodCallHandler(null)
+        channel = null
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
-        kronosClock = AndroidClockFactory.createKronosClock(binding.getActivity())
+        kronosClock = AndroidClockFactory.createKronosClock(binding.activity)
     }
 
     override fun onDetachedFromActivityForConfigChanges() {
@@ -65,7 +63,6 @@ class FlutterKronosPlugin : MethodCallHandler, FlutterPlugin, ActivityAware {
     }
 
     override fun onDetachedFromActivity() {
-        channel?.setMethodCallHandler(null)
-        channel = null
+        kronosClock = null
     }
 }
